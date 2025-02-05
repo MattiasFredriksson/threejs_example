@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import * as OBJECTS from './object_generators.ts';
 import {ObjectPicker} from './object_picker.ts';
 import {ModalOPVertexEdit} from './modal_op_vertex_edit.ts';
+import {ModalOPTransformGizmo} from './modal_op_transform_gizmo.ts';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 
@@ -32,7 +33,9 @@ function onSelectCallback(event, object){
 	
 	if (object) {
 		// Create Vertex edit operator
-		modalOp = new ModalOPVertexEdit(object, scene)
+
+		//modalOp = new ModalOPVertexEdit(object, scene);
+		modalOp = new ModalOPTransformGizmo(object, scene);
 	}
 }
 
@@ -41,7 +44,6 @@ function onActiveClickCallback(event, object){
 		modalOp.poll(event, canvas, active_object, camera, object);
 	}
 }
-
 active_object.listenMouseEvent(window, canvas, onSelectCallback, onActiveClickCallback);
 
 

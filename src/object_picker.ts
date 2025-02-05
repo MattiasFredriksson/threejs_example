@@ -68,7 +68,7 @@ class ObjectPicker {
         this.hoverObject = closestObject;
         if (closestObject !== this.pickedObject && 'material' in closestObject && 'emissive' in closestObject.material) {
             this.hoverObjectSavedColor = this.hoverObject.material.emissive.getHex();
-            this.hoverObject.material.emissive.setRGB( 255/255 * 0.05, 191/256 * 0.05, 0 );
+            this.hoverObject.material.emissive.setRGB( 1 * 0.05, 0.7 * 0.05, 0 );
         }
       }
     }
