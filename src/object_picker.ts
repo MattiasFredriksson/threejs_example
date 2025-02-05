@@ -95,6 +95,9 @@ class ObjectPicker {
         }
     
         function setPickPosition(event) {
+            if (picker.muted) {
+                return;
+            }
             const pos = getCanvasRelativePosition(event);
             picker.nextPosition = new THREE.Vector2(
                 (pos.x / canvas.width ) *  2 - 1,
@@ -102,6 +105,9 @@ class ObjectPicker {
         }
 
         function clearPickPosition() {
+            if (picker.muted) {
+                return;
+            }
             picker.nextPosition = undefined;
         }
 
