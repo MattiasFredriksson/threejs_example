@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import * as OBJECTS from './object_generators.ts';
+import {ObjectPicker} from './object_picker.ts';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 
@@ -13,6 +14,7 @@ const loader = new GLTFLoader();
 
 const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 const controls = new OrbitControls(camera, canvas);
+const active_object = new ObjectPicker();
 
 camera.position.z = 5;
 controls.target.set(0, 0, 0);
@@ -21,11 +23,15 @@ controls.update();
 let suzanne = OBJECTS.ensure_gltf_object(loader, '/Suzanne.glb', scene);
 scene.add(OBJECTS.create_default_light(new THREE.Vector3(-0.3, -1, -0.3)));
 
+active_object.listenMouseEvent(window, canvas);
+
 suzanne = await suzanne;
 function animate() {
 
 	suzanne.rotation.x += 0.01;
 	suzanne.rotation.y += 0.01;
+
+	active_object.update_selection(scene, camera);
 
 	renderer.render( scene, camera );
 }
@@ -44,5 +50,6 @@ function recurse_objects(set){
 	});
 }
 recurse_objects(scene.children)
+
 
 renderer.setAnimationLoop( animate );

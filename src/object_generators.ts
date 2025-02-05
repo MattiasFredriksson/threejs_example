@@ -29,29 +29,6 @@ function create_default_object() : THREE.Group {
     return group;
 }
 
-/**
- * 
- * @param loader 
- * @param path URL path to the glb/gltf file to load.
- * @param sceneContext Scene object is added to.
- */
-function load_gltf_object(loader: GLTFLoader, path: string, onLoadContext: THREE.Scene | any) {
-    
-    let onLoad = onLoadContext
-    if (onLoadContext instanceof THREE.Scene){
-        function addToContext(group) {
-            onLoadContext.add(group);
-        }
-        onLoad = addToContext;
-    }
-
-    loader.load(path, function (gltf) {
-        sceneContext.add(gltf.scene);
-    }, undefined, function (error) {
-        console.error(error);
-    });
-}
-
 function common_load_callback(onLoadContext: THREE.Scene | any, group: THREE.Group){
     if (onLoadContext instanceof THREE.Scene){
         onLoadContext.add(group);
