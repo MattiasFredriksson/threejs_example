@@ -4,7 +4,7 @@
 		<meta charset="utf-8">
 		<title>My first three.js page</title>
 		<style>
-            html, body {
+            body {
                margin: 0;
                height: 100%;
             }
@@ -13,10 +13,52 @@
                height: 100%;
                display: block;
             }
+            .row-fluid {
+                  display: block;
+                  position: absolute;
+                  left: 5%;
+                  top: 5%;
+                  background: rgba( 255, 255, 255, 0.5 );
+                  border: none;
+                  border-radius: 1em;
+                  text-align: center;
+                  font-family: sans-serif;
+                  font-size: 100%;
+            }
+            .transform:hover {
+                  cursor: pointer;
+                  border: solid 1px gray;
+                  background: rgba( 255, 255, 255, 0.5 );
+            }
+            .editVertex:hover {
+                  cursor: pointer;
+                  border: solid 1px gray;
+                  background: rgba( 255, 255, 255, 0.5 );
+            }
+            span:first-child
+            {
+               float: left;
+               padding: 10px;
+            }
+            span:last-child
+            {
+               float: right;
+               padding: 10px;
+            }
 		</style>
 	</head>
 	<body>
         <canvas id="c"></canvas>
-		<script type="module" src="src/main.js"></script>
+		  <script type="module" src="src/main.js"></script>
+        <div class="row-fluid">
+            <span class="transform" id="TRANSFORM">
+               <b>Transform</b>
+            </span>
+            <span>
+            </span>
+            <span class="editVertex" id="EDIT_VERTEX">
+               <b>Vertex Edit</b>
+            </span>
+         </div>
 	</body>
 </html>

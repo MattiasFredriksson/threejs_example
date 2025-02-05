@@ -1,10 +1,11 @@
 import * as THREE from 'three';
 import * as OBJECTS from './object_generators.ts';
 import {ObjectPicker} from './object_picker.ts';
-import {ModalOPVertexEdit} from './modal_op_vertex_edit.ts';
-import {ModalOPTransformGizmo} from './modal_op_transform_gizmo.ts';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+
+import {ModalOPVertexEdit} from './modal_op_vertex_edit.ts';
+import {ModalOPTransformGizmo} from './modal_op_transform_gizmo.ts';
 
 const canvas = document.querySelector('#c');
 const renderer = new THREE.WebGLRenderer({antialias: true, canvas});
@@ -26,16 +27,22 @@ let suzanne = OBJECTS.ensure_gltf_object(loader, '/Suzanne.glb', scene);
 scene.add(OBJECTS.create_default_light(new THREE.Vector3(-0.3, -1, -0.3)));
 
 let modalOp = null;
+let activeTool = "TRANSFORM"
 function onSelectCallback(event, object){
 	if (modalOp) {
 		modalOp.dispose(scene);
 	}
 	
 	if (object) {
-		// Create Vertex edit operator
-
-		//modalOp = new ModalOPVertexEdit(object, scene);
-		modalOp = new ModalOPTransformGizmo(object, scene);
+		if (activeTool === "TRANSFORM") {
+			// Create Trasform operator
+			modalOp = new ModalOPTransformGizmo(object, scene);
+		} else if(activeTool == "EDIT_VERTEX") {
+			// Create Vertex edit operator
+			modalOp = new ModalOPVertexEdit(object, scene);
+		} else {
+			console.log("Unknown tool: ", activeTool)
+		}
 	}
 }
 
@@ -58,20 +65,19 @@ function animate() {
 	renderer.render( scene, camera );
 }
 
-function handle_mesh(mesh) {
-	console.log("Mesh:", mesh.name);
+// HUD
+function setToolTransform(event){
+	activeTool = "TRANSFORM"
+	onSelectCallback(event, active_object.pickedObject);
+	event.stopImmediatePropagation();
 }
-
-function recurse_objects(set){
-	set.forEach((child) => {
-		if (child instanceof THREE.Mesh){
-			handle_mesh(child)
-		}else{
-			recurse_objects(child.children);
-		}
-	});
+function setToolEditVertex(event){
+	activeTool = "EDIT_VERTEX"
+	onSelectCallback(event, active_object.pickedObject);
+	event.stopImmediatePropagation();
 }
-recurse_objects(scene.children)
+document.getElementById("TRANSFORM").addEventListener("click", setToolTransform, false);
+document.getElementById("EDIT_VERTEX").addEventListener("click", setToolEditVertex, false);
 
 
 renderer.setAnimationLoop( animate );
