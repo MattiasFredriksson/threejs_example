@@ -23,7 +23,7 @@ class ObjectPicker {
     }
 
     clear_hover_highlight() {
-        if (this.hoverObject && 'material' in this.hoverObject) {
+        if (this.hoverObject && 'material' in this.hoverObject && 'emissive' in this.hoverObject.material) {
             this.hoverObject.material.emissive.setHex(this.hoverObjectSavedColor);
         }
     }
@@ -55,15 +55,24 @@ class ObjectPicker {
       if (intersectedObjects.length) {
         const closestObject = intersectedObjects[0].object;
         this.hoverObject = closestObject;
-        if (closestObject !== this.pickedObject && 'material' in closestObject) {
+        if (closestObject !== this.pickedObject && 'material' in closestObject && 'emissive' in closestObject.material) {
             this.hoverObjectSavedColor = this.hoverObject.material.emissive.getHex();
             this.hoverObject.material.emissive.setRGB( 255/255 * 0.05, 191/256 * 0.05, 0 );
         }
-        //console.log(this.hoverObject);
       }
     }
 
-    listenMouseEvent(window, canvas) {
+    raycast(sceneContext, camera, pointThreshold: number = 0.01): any[] {
+        if (this.currentPosition === undefined) {
+            return [];
+        }
+        this.raycaster.params.Points.threshold = pointThreshold;
+
+        this.raycaster.setFromCamera(this.currentPosition, camera);
+        return this.raycaster.intersectObjects(sceneContext);
+    }
+
+    listenMouseEvent(window, canvas, onSelectCallback: Function | undefined = undefined, onActiveClickCallback: Function | undefined = undefined) {
         let picker = this;
         
         function getCanvasRelativePosition(event) {
@@ -92,8 +101,16 @@ class ObjectPicker {
                 console.log("ActiveObject:", picker.hoverObject);
             }
             // Could perform intersection test 'on click' here..
-            picker.pickedObject = picker.hoverObject;
-            picker.clear_hover_highlight();
+            if (picker.pickedObject !== picker.hoverObject){
+                picker.pickedObject = picker.hoverObject;
+                picker.clear_hover_highlight();
+
+                if (onSelectCallback) {
+                    onSelectCallback(picker.pickedObject);
+                }
+            } else if(picker.pickedObject && onActiveClickCallback) {
+                onActiveClickCallback(picker.pickedObject)
+            }
         }
 
         window.addEventListener('click', select_active);
