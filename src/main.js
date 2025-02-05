@@ -6,6 +6,14 @@ import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 
 const canvas = document.querySelector('#c');
+function getCanvasRelativePosition(event) {
+	const rect = canvas.getBoundingClientRect();
+	return {
+	x: (event.clientX - rect.left) * canvas.width  / rect.width,
+	y: (event.clientY - rect.top ) * canvas.height / rect.height,
+	};
+}
+
 const renderer = new THREE.WebGLRenderer({antialias: true, canvas});
 renderer.setSize( window.innerWidth, window.innerHeight );
 document.body.appendChild( renderer.domElement );
@@ -28,7 +36,7 @@ scene.add(OBJECTS.create_default_light(new THREE.Vector3(-0.3, -1, -0.3)));
 
 // Create vertex cloud
 let pcloud = null;
-function onSelectCallback(object){
+function onSelectCallback(event, object){
 	const cloud_name = "VertexCloud"
 	const previous = scene.getObjectByName(cloud_name);
 	if (previous) {
@@ -46,13 +54,46 @@ function onSelectCallback(object){
 	}
 }
 
-function onActiveClickCallback(object){
-	intersects = active_object.raycast([pcloud], camera, POINT_RADIUS);
+let selectedVertices = undefined;
+function onActiveClickCallback(event, object){
+	const intersects = active_object.raycast([pcloud], camera, POINT_RADIUS);
+	if (intersects.length == 0) {
+		return
+	}
 
-	
+	let closeIndexSet = []
+	const closestDistance = intersects[0].distance
+	intersects.forEach((intersect) => {
+		if (intersect.distance < closestDistance + 1e-7){
+			const index = intersect.index * 3;
+			closeIndexSet.push({index: index, co: object.geometry.attributes.position.array[index]});
+		}
+	});
+
+	selectedVertices = {pos: getCanvasRelativePosition(event), object:object, indexSet: closeIndexSet};
+	active_object.mute();
+	window.addEventListener('click', finalizeModalEdit);
+	window.addEventListener('mousemove', updateVertexPositions);
+}
+
+function updateVertexPositions(event){
+	const pos = getCanvasRelativePosition(event);
+	const mouseDeltaX = pos.x - selectedVertices.pos.x;
+	selectedVertices.indexSet.forEach((entry) => {
+		selectedVertices.object.geometry.attributes.position.array[entry.index] = entry.co + mouseDeltaX * 0.001;
+	});
+	selectedVertices.object.geometry.attributes.position.needsUpdate = true;
+}
+
+function finalizeModalEdit(event) {
+	selectedVertices = undefined;
+	window.removeEventListener('click', finalizeModalEdit);
+	window.removeEventListener('mousemove', updateVertexPositions);
+	active_object.unmute();
 }
 
 active_object.listenMouseEvent(window, canvas, onSelectCallback, onActiveClickCallback);
+
 
 suzanne = await suzanne;
 function animate() {

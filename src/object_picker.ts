@@ -13,6 +13,8 @@ class ObjectPicker {
     hoverObject: any | undefined;
     hoverObjectSavedColor: number
 
+    muted: boolean;
+
     constructor() {
       this.raycaster = new THREE.Raycaster();
       this.currentPosition = undefined;
@@ -20,6 +22,15 @@ class ObjectPicker {
       this.pickedObject = null;
       this.hoverObject = null;
       this.hoverObjectSavedColor = 0;
+      this.muted = false;
+    }
+
+    mute(){
+        this.muted = true;
+    }
+
+    unmute(){
+        this.muted = false;
     }
 
     clear_hover_highlight() {
@@ -95,6 +106,9 @@ class ObjectPicker {
         }
 
         function select_active(event) {
+            if (picker.muted) {
+                return;
+            }
             if (picker.hoverObject && 'name' in picker.hoverObject) {
                 console.log("ActiveObject:", picker.hoverObject.name);
             } else {
@@ -106,10 +120,10 @@ class ObjectPicker {
                 picker.clear_hover_highlight();
 
                 if (onSelectCallback) {
-                    onSelectCallback(picker.pickedObject);
+                    onSelectCallback(event, picker.pickedObject);
                 }
             } else if(picker.pickedObject && onActiveClickCallback) {
-                onActiveClickCallback(picker.pickedObject)
+                onActiveClickCallback(event, picker.pickedObject)
             }
         }
 
