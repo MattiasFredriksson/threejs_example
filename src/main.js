@@ -23,11 +23,11 @@ camera.position.z = 5;
 controls.target.set(0, 0, 0);
 controls.update();
 
-let suzanne = OBJECTS.ensure_gltf_object(loader, '/Suzanne.glb', scene);
+let gltfScene = OBJECTS.ensure_gltf_object(loader, '/Suzanne.glb', scene);
 scene.add(OBJECTS.create_default_light(new THREE.Vector3(-0.3, -1, -0.3)));
 
 let modalOp = null;
-let activeTool = "TRANSFORM"
+let activeTool = "EDIT_VERTEX"
 function onSelectCallback(event, object){
 	if (modalOp) {
 		modalOp.dispose(scene);
@@ -54,14 +54,9 @@ function onActiveClickCallback(event, object){
 active_object.listenMouseEvent(window, canvas, onSelectCallback, onActiveClickCallback);
 
 
-suzanne = await suzanne;
+gltfScene = await gltfScene;
 function animate() {
-
-	//suzanne.rotation.x += 0.001;
-	//suzanne.rotation.y += 0.001;
-
-	active_object.update_selection(suzanne, camera);
-	
+	active_object.update_selection(gltfScene, camera);
 	renderer.render( scene, camera );
 }
 
