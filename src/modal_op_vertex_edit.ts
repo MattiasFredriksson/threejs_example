@@ -57,6 +57,7 @@ class ModalOPVertexEdit {
         if (previous) {
             scene.remove(previous);
         }
+        this.pointCloud.geometry.dispose();
     }
 
     poll(event, canvas, active_object: ObjectPicker, camera, object: THREE.Mesh){

@@ -42,6 +42,7 @@ class ModalOPTransformGizmo {
         if (previous) {
             scene.remove(previous);
         }
+        this.sphere.geometry.dispose();
     }
 
     poll(event, canvas, active_object: ObjectPicker, camera: THREE.Camera, object: THREE.Mesh){
