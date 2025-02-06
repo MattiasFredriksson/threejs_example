@@ -99,7 +99,6 @@ class ModalOPVertexEdit {
             }
     
             function finalizeModalEdit(event) {
-                console.log("Ended")
                 window.removeEventListener('click', finalizeModalEdit);
                 window.removeEventListener('mousemove', updateVertexPositions);
                 window.addEventListener('click', op.poll, { capture: true });

@@ -104,7 +104,6 @@ class ObjectPicker {
         this.raycaster.params.Points.threshold = pointThreshold;
 
         this.raycaster.setFromCamera(this.currentPosition, camera);
-        console.log(sceneContext)
         return this.raycaster.intersectObjects(sceneContext);
     }
 
