@@ -26,12 +26,14 @@ controls.target.set(0, 0, 0);
 controls.update();
 
 // Load scene
-let gltfScene = OBJECTS.ensure_gltf_object(loader, '/Suzanne.glb', scene);
+const sceneObjects = new THREE.Group();
+let gltfScene = OBJECTS.ensure_gltf_object(loader, '/pizza_delivery_export.glb', sceneObjects);
+let suzanne = OBJECTS.ensure_gltf_object(loader, '/Suzanne.glb', sceneObjects);
 scene.add(OBJECTS.create_default_light(new THREE.Vector3(-0.3, -1, -0.3)));
 
 // Tool activation
 let modalOp = null;
-let activeTool = "EDIT_VERTEX"
+let activeTool = "TRANSFORM"
 
 function onSelectCallback(event, object){
 	if (modalOp) {
@@ -46,24 +48,24 @@ function onSelectCallback(event, object){
 			// Create Vertex edit operator
 			modalOp = new ModalOPVertexEdit(object, scene);
 		} else {
-			console.log("Unknown tool: ", activeTool)
+			console.log("Unknown tool: ", activeTool);
+			return;
 		}
-	}
-}
-
-function onActiveClickCallback(event, object){
-	if (modalOp) { // Should always be true..
-		modalOp.poll(event, canvas, active_object, camera, object);
+		modalOp.enablePoll(canvas, active_object, camera);
 	}
 }
 
 // Activate object selection
-active_object.listenMouseEvent(window, canvas, onSelectCallback, onActiveClickCallback);
+active_object.listenMouseEvent(window, canvas, onSelectCallback);
 
 // Update loop
 gltfScene = await gltfScene;
+suzanne = await suzanne;
+suzanne.position.y += 1
+scene.add(sceneObjects);
+
 function updateLoop() {
-	active_object.update_selection(gltfScene, camera);
+	active_object.update_selection([gltfScene, suzanne], camera);
 	renderer.render( scene, camera );
 }
 renderer.setAnimationLoop( updateLoop );

@@ -30,7 +30,7 @@ function create_default_object() : THREE.Group {
 }
 
 function common_load_callback(onLoadContext: THREE.Scene | any, group: THREE.Group){
-    if (onLoadContext instanceof THREE.Scene){
+    if (onLoadContext instanceof THREE.Scene || onLoadContext instanceof THREE.Group){
         onLoadContext.add(group);
     }
     else if(onLoadContext !== undefined) {

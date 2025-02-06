@@ -10,8 +10,8 @@ class ObjectPicker {
     nextPosition: THREE.Vector2 | undefined;
 
     pickedObject: any | undefined;
-    hoverObject: any | undefined;
-    hoverObjectSavedColor: number
+    hoverObject: any | THREE.Mesh;
+    hoverObjectMaterial: any | THREE.Material;
 
     muted: boolean;
 
@@ -21,7 +21,7 @@ class ObjectPicker {
       this.nextPosition = undefined;
       this.pickedObject = null;
       this.hoverObject = null;
-      this.hoverObjectSavedColor = 0;
+      this.hoverObjectMaterial = null;
       this.muted = false;
     }
 
@@ -34,17 +34,20 @@ class ObjectPicker {
     }
 
     clear_hover_highlight() {
-        if (this.hoverObject && 'material' in this.hoverObject && 'emissive' in this.hoverObject.material) {
-            this.hoverObject.material.emissive.setHex(this.hoverObjectSavedColor);
+        if (this.hoverObject && this.hoverObjectMaterial && 'material' in this.hoverObject) {
+            this.hoverObject.material.dispose();
+            this.hoverObject.material = this.hoverObjectMaterial;
+            this.hoverObject.material.needsUpdate = true;
         }
     }
 
     clear_hover() {
         this.clear_hover_highlight();
         this.hoverObject = undefined;
+        this.hoverObjectMaterial = undefined;
     }
     
-    update_selection(scene, camera) {
+    update_selection(sceneContext, camera) {
       if (this.nextPosition === this.currentPosition) {
         return;
       }
@@ -57,7 +60,7 @@ class ObjectPicker {
 
       // Cast a ray through the frustum
       this.raycaster.setFromCamera(this.currentPosition, camera);
-      const intersectedObjects = this.raycaster.intersectObjects(scene.children);
+      const intersectedObjects = this.raycaster.intersectObjects(sceneContext);
 
       // Handle intersections
       this.clear_hover();
@@ -66,26 +69,17 @@ class ObjectPicker {
       if (intersectedObjects.length) {
         const closestObject = intersectedObjects[0].object;
         this.hoverObject = closestObject;
-        if (closestObject !== this.pickedObject && 'material' in closestObject && 'emissive' in closestObject.material) {
-            this.hoverObjectSavedColor = this.hoverObject.material.emissive.getHex();
-            this.hoverObject.material.emissive.setRGB( 1 * 0.05, 0.7 * 0.05, 0 );
+        if (closestObject !== this.pickedObject && 'material' in closestObject) {
+            this.hoverObjectMaterial = closestObject.material;
+            const materialCopy = closestObject.material.clone();
+            materialCopy.emissive.setRGB( 1 * 0.05, 0.7 * 0.05, 0 );
+            closestObject.material = materialCopy;
+            closestObject.material.needsUpdate = true;
         }
       }
     }
 
-    raycast(sceneContext, camera, pointThreshold: number = 0.01): any[] {
-        if (this.currentPosition === undefined) {
-            return [];
-        }
-        this.raycaster.params.Points.threshold = pointThreshold;
-
-        this.raycaster.setFromCamera(this.currentPosition, camera);
-        return this.raycaster.intersectObjects(sceneContext);
-    }
-
-    listenMouseEvent(window, canvas, onSelectCallback: Function | undefined = undefined, onActiveClickCallback: Function | undefined = undefined) {
-        let picker = this;
-        
+    getCameraRelativeMousePosition(event, canvas){
         function getCanvasRelativePosition(event) {
             const rect = canvas.getBoundingClientRect();
             return {
@@ -93,15 +87,35 @@ class ObjectPicker {
             y: (event.clientY - rect.top ) * canvas.height / rect.height,
             };
         }
+
+        const pos = getCanvasRelativePosition(event);
+        return new THREE.Vector2(
+            (pos.x / canvas.width ) *  2 - 1,
+            (pos.y / canvas.height) * -2 + 1);
+    }
+
+    raycast(sceneContext, camera, pointThreshold: number = 0.01, coord: THREE.Vector2 | undefined = undefined): any[] {
+        if (coord === undefined) {
+            coord = this.currentPosition;
+        }
+        if (coord === undefined) {
+            return [];
+        }
+        this.raycaster.params.Points.threshold = pointThreshold;
+
+        this.raycaster.setFromCamera(this.currentPosition, camera);
+        console.log(sceneContext)
+        return this.raycaster.intersectObjects(sceneContext);
+    }
+
+    listenMouseEvent(window, canvas, onSelectCallback: Function | undefined = undefined, onActiveClickCallback: Function | undefined = undefined) {
+        let picker = this;
     
         function setPickPosition(event) {
             if (picker.muted) {
                 return;
             }
-            const pos = getCanvasRelativePosition(event);
-            picker.nextPosition = new THREE.Vector2(
-                (pos.x / canvas.width ) *  2 - 1,
-                (pos.y / canvas.height) * -2 + 1);
+            picker.nextPosition = picker.getCameraRelativeMousePosition(event, canvas);
         }
 
         function clearPickPosition() {
